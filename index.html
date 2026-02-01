@@ -19,14 +19,15 @@
         .opponent-stats { top: 30px; left: 20px; border-radius: 0 10px 0 10px; }
         .player-stats { bottom: 140px; right: 20px; border-radius: 10px 0 10px 0; }
         .hp-bar-container { width: 100%; height: 8px; background: #555; border: 1px solid #000; margin-top: 5px; }
-        .hp-bar-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 0.5s; }
+        .hp-bar-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 0.3s; }
         .name-label { font-weight: bold; font-size: 14px; text-transform: uppercase; }
 
-        #opponent-sprite { position: absolute; top: 20px; right: 30px; width: 130px; }
+        #opponent-sprite { position: absolute; top: 20px; right: 30px; width: 130px; transition: filter 0.1s; }
         #player-sprite { position: absolute; bottom: 130px; left: 30px; width: 130px; }
 
-        /* --- FLASH EFFECT --- */
+        /* Effects */
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: none; z-index: 1000; }
+        .dmg-flash { filter: brightness(0) saturate(100%) invert(27%) sepia(91%) saturate(2352%) hue-rotate(346deg) brightness(104%) contrast(97%) !important; }
 
         /* --- DIALOGUE UI --- */
         #ui-container { position: absolute; bottom: 0; width: 100%; height: 120px; background: #f8f8f8; border-top: 4px solid #000; display: flex; flex-direction: column; cursor: pointer; }
@@ -86,17 +87,29 @@
         const arrow = document.getElementById('arrow');
         const options = document.getElementById('options-container');
         const flash = document.getElementById('flash');
+        const oppSprite = document.getElementById('opponent-sprite');
+        const oppHpBar = document.getElementById('opp-hp');
 
         let px = 50, py = 250;
         let dialogueIndex = 0;
         let isTyping = false;
         let battleStarted = false;
+        let nikhilHp = 100;
+        let attackIndex = 0;
 
         const mainDialogue = [
             "Yannis, you are the most beautiful girl in the whole world, inside and out.",
             "You make me feel special and loved.",
             "I have something to ask...",
             "Will you be my Valentine?"
+        ];
+
+        const nikhilAttacks = [
+            "Nikhil used Flowers & Chocolate!",
+            "Nikhil used UberEats!",
+            "Nikhil used New Girl binge watch!",
+            "Nikhil used Miss Vickies Salt & Vinegar chips!",
+            "Nikhil used Wine & Dine!"
         ];
 
         let currentDialogueSet = mainDialogue;
@@ -109,7 +122,6 @@
             if (dir === 'right' && px < 350) px += 25;
             player.style.top = py + 'px';
             player.style.left = px + 'px';
-
             if (px > 100 && px < 160 && py > 160 && py < 220) triggerBattleTransition();
         }
 
@@ -158,7 +170,7 @@
                         }, 1000);
                     }
                 }
-            }, 40); // Fast text speed (40ms)
+            }, 30);
         }
 
         function advanceDialogue() {
@@ -174,11 +186,38 @@
             if (val === 'yes') {
                 options.style.display = 'none';
                 textElement.innerHTML = "It's super effective! ❤️";
-                document.getElementById('opp-hp').style.width = '0%';
+                oppHpBar.style.width = '0%';
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             } else {
                 options.style.display = 'none';
-                currentDialogueSet = ["Nikhil used Flowers & Chocolate!", "It's super effective! You're trapped in love!"];
+                
+                // Damage Nikhil
+                nikhilHp -= 10;
+                oppHpBar.style.width = nikhilHp + '%';
+                
+                // Red Flash Visual
+                oppSprite.classList.add('dmg-flash');
+                setTimeout(() => oppSprite.classList.remove('dmg-flash'), 200);
+
+                if (nikhilHp <= 0) {
+                    // Reset Logic
+                    currentDialogueSet = [
+                        "Nikhil is extremely sad...",
+                        "b*tch be fr rn, im finna re-up my health, u better be acting st8 gng"
+                    ];
+                    nikhilHp = 100;
+                    oppHpBar.style.width = '100%';
+                } else {
+                    // Attack Cycle
+                    const attack = nikhilAttacks[attackIndex];
+                    attackIndex = (attackIndex + 1) % nikhilAttacks.length;
+                    currentDialogueSet = [
+                        "Nikhil is sad...",
+                        attack,
+                        "It's super effective! You're trapped in love!"
+                    ];
+                }
+                
                 dialogueIndex = 0;
                 typeText(currentDialogueSet[dialogueIndex]);
             }
