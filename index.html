@@ -12,10 +12,25 @@
         /* --- OVERWORLD --- */
         #overworld { position: relative; width: 400px; height: 400px; margin-top: 20px; border: 8px solid #333; background: url('valentines background.png') no-repeat center center; background-size: cover; display: block; }
         
-        /* 20% size increase (from 50px to 60px) */
+        /* 20% size increase (60px) */
         #player { position: absolute; width: 60px; height: 60px; background: url('valentines yannis sprite.png') no-repeat; background-size: contain; transition: all 0.1s linear; z-index: 10; }
         
-        #hint-text { position: absolute; bottom: 10px; width: 100%; text-align: center; color: white; text-shadow: 2px 2px 2px black; font-weight: bold; font-size: 14px; pointer-events: none; }
+        /* High opacity background for the hint */
+        #hint-text { 
+            position: absolute; 
+            bottom: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7); /* Dark background with 70% opacity */
+            color: white; 
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid #ff4d6d;
+            font-weight: bold; 
+            font-size: 14px; 
+            pointer-events: none;
+            white-space: nowrap;
+        }
 
         /* --- BATTLE SCREEN --- */
         #battle-screen { display: none; position: relative; width: 400px; height: 400px; margin-top: 20px; background: #fff; border: 8px solid #000; }
@@ -127,8 +142,11 @@
             if (dir === 'right' && px < 340) px += 25;
             player.style.top = py + 'px';
             player.style.left = px + 'px';
-            // Trigger near center-left where the board usually is
-            if (px > 100 && px < 160 && py > 160 && py < 220) triggerBattleTransition();
+            
+            // Widened Trigger Radius (+20%)
+            // Old: px 100-160, py 160-220
+            // New: px 90-170, py 150-230
+            if (px > 90 && px < 170 && py > 150 && py < 230) triggerBattleTransition();
         }
 
         function triggerBattleTransition() {
