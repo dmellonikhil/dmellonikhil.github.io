@@ -6,116 +6,66 @@
     <title>Valentine Quest</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body {
-            margin: 0; padding: 0;
-            background-color: #222;
-            display: flex; flex-direction: column; align-items: center;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden; touch-action: manipulation;
-        }
+        :root { --bg-color: #222; --poke-blue: #2a75bb; --poke-yellow: #ffcb05; }
+        body { margin: 0; padding: 0; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: manipulation; }
 
-        /* --- OVERWORLD SCREEN --- */
-        #game-container {
-            position: relative;
-            width: 400px; height: 400px;
-            margin-top: 20px;
-            border: 8px solid #333;
-            background-image: url('valentines background.png');
-            background-size: cover;
-            display: block;
-        }
-
-        #player {
-            position: absolute;
-            width: 50px; height: 50px;
-            background-image: url('valentines yannis sprite.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            transition: all 0.1s linear;
-            z-index: 10;
-        }
+        /* --- OVERWORLD --- */
+        #overworld { position: relative; width: 400px; height: 400px; margin-top: 20px; border: 8px solid #333; background: url('valentines background.png') no-repeat center center; background-size: cover; display: block; }
+        #player { position: absolute; width: 50px; height: 50px; background: url('valentines yannis sprite.png') no-repeat; background-size: contain; transition: all 0.15s linear; z-index: 10; }
 
         /* --- BATTLE SCREEN --- */
-        #battle-screen {
-            display: none;
-            position: relative;
-            width: 400px; height: 400px;
-            margin-top: 20px;
-            background-color: white;
-            border: 8px solid #000;
-            overflow: hidden;
-        }
+        #battle-screen { display: none; position: relative; width: 400px; height: 400px; margin-top: 20px; background: #fff; border: 8px solid #000; }
+        .stats-box { position: absolute; background: #f8f8f8; border: 3px solid #444; border-radius: 0 0 10px 0; padding: 5px 10px; width: 160px; box-shadow: 3px 3px 0px #ccc; }
+        .opponent-stats { top: 30px; left: 20px; border-radius: 0 10px 0 10px; }
+        .player-stats { bottom: 140px; right: 20px; border-radius: 10px 0 10px 0; }
+        .hp-bar-container { width: 100%; height: 8px; background: #555; border: 1px solid #000; margin-top: 5px; }
+        .hp-bar-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 0.5s; }
+        .name-label { font-weight: bold; font-size: 14px; text-transform: uppercase; }
 
-        .opponent-side {
-            position: absolute; top: 20px; right: 30px;
-            text-align: center;
-        }
+        #opponent-sprite { position: absolute; top: 20px; right: 30px; width: 130px; }
+        #player-sprite { position: absolute; bottom: 130px; left: 30px; width: 130px; }
 
-        .player-side {
-            position: absolute; bottom: 120px; left: 30px;
-            text-align: center;
-        }
+        /* --- DIALOGUE & BUTTONS --- */
+        #ui-container { position: absolute; bottom: 0; width: 100%; height: 120px; background: #f8f8f8; border-top: 4px solid #000; display: flex; flex-direction: column; cursor: pointer; }
+        #text-box { padding: 15px; font-size: 18px; line-height: 1.4; flex-grow: 1; }
+        .blink-arrow { position: absolute; bottom: 10px; right: 20px; font-size: 20px; animation: blink 0.8s infinite; display: none; }
+        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
 
-        .sprite-battle { width: 120px; }
-
-        #battle-menu {
-            position: absolute; bottom: 0; left: 0;
-            width: 100%; height: 100px;
-            background: #f8f8f8; border-top: 4px solid #000;
-            display: flex; flex-direction: column;
-        }
-
-        #dialogue-text {
-            padding: 10px; font-size: 16px; height: 40px;
-        }
-
-        .options {
-            display: flex; justify-content: space-around;
-            padding: 5px;
-        }
-
-        .battle-btn {
-            padding: 10px 30px; border: 2px solid #000;
-            background: white; cursor: pointer; font-weight: bold;
-        }
-
-        .battle-btn:hover { background: #eee; }
+        #options-container { display: none; justify-content: space-around; padding: 10px; background: #eee; border-top: 2px solid #000; }
+        .battle-btn { padding: 10px 40px; border: 3px solid #000; background: white; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .battle-btn:active { background: #ddd; }
 
         /* Mobile Controls */
-        .dpad {
-            display: grid; grid-template-columns: repeat(3, 50px);
-            grid-template-rows: repeat(2, 50px); gap: 5px; margin-top: 15px;
-        }
-        .btn {
-            width: 50px; height: 50px; background: #eee;
-            border: 2px solid #555; display: flex;
-            align-items: center; justify-content: center; font-size: 20px;
-        }
+        .dpad { display: grid; grid-template-columns: repeat(3, 55px); grid-template-rows: repeat(2, 55px); gap: 5px; margin-top: 15px; }
+        .btn { width: 55px; height: 55px; background: #eee; border: 2px solid #555; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
+    <div id="overworld">
         <div id="player" style="top: 250px; left: 50px;"></div>
     </div>
 
     <div id="battle-screen">
-        <div class="opponent-side">
-            <div style="background: #eee; border: 2px solid #000; padding: 2px; margin-bottom: 5px;">NIKHIL HP: 100%</div>
-            <img src="valentines nikhil sprite.png" class="sprite-battle" id="opponent-img">
+        <div class="stats-box opponent-stats">
+            <div class="name-label">Nikhil</div>
+            <div class="hp-bar-container"><div class="hp-bar-fill" id="opp-hp"></div></div>
+        </div>
+        <img src="valentines nikhil sprite.png" id="opponent-sprite">
+
+        <img src="valentines yannis sprite.png" id="player-sprite">
+        <div class="stats-box player-stats">
+            <div class="name-label">Yannis</div>
+            <div class="hp-bar-container"><div class="hp-bar-fill"></div></div>
         </div>
 
-        <div class="player-side">
-            <img src="valentines yannis sprite.png" class="sprite-battle">
-            <div style="background: #eee; border: 2px solid #000; padding: 2px; margin-top: 5px;">YANNIS HP: 100%</div>
-        </div>
-
-        <div id="battle-menu">
-            <div id="dialogue-text">Wild Nikhil appeared!</div>
-            <div class="options" id="battle-options">
-                <button class="battle-btn" onclick="handleChoice('yes')">YES</button>
-                <button class="battle-btn" onclick="handleChoice('no')">NO</button>
+        <div id="ui-container" onclick="advanceDialogue()">
+            <div id="text-box"></div>
+            <div id="options-container">
+                <button class="battle-btn" onclick="handleChoice('yes', event)">YES</button>
+                <button class="battle-btn" onclick="handleChoice('no', event)">NO</button>
             </div>
+            <div class="blink-arrow" id="arrow">▼</div>
         </div>
     </div>
 
@@ -128,69 +78,103 @@
 
     <script>
         const player = document.getElementById('player');
-        const gameContainer = document.getElementById('game-container');
-        const battleScreen = document.getElementById('battle-screen');
-        const controls = document.getElementById('controls');
-        const dialogue = document.getElementById('dialogue-text');
-        const options = document.getElementById('battle-options');
+        const textElement = document.getElementById('text-box');
+        const arrow = document.getElementById('arrow');
+        const options = document.getElementById('options-container');
 
-        let px = 50;
-        let py = 250;
-        const step = 20;
+        let px = 50, py = 250;
+        let dialogueIndex = 0;
+        let isTyping = false;
+
+        const mainDialogue = [
+            "Yannis, you are the most beautiful girl in the whole world, inside and out.",
+            "You make me feel special and loved.",
+            "I have something to ask...",
+            "Will you be my Valentine?"
+        ];
+
+        let currentDialogueSet = mainDialogue;
 
         function move(dir) {
-            if (dir === 'up' && py > 0) py -= step;
-            if (dir === 'down' && py < 350) py += step;
-            if (dir === 'left' && px > 0) px -= step;
-            if (dir === 'right' && px < 350) px += step;
-
+            if (dir === 'up' && py > 0) py -= 25;
+            if (dir === 'down' && py < 350) py += 25;
+            if (dir === 'left' && px > 0) px -= 25;
+            if (dir === 'right' && px < 350) px += 25;
             player.style.top = py + 'px';
             player.style.left = px + 'px';
 
-            // Collision check: Figure is roughly at x:130, y:180 (near the sign)
-            if (px > 100 && px < 160 && py > 160 && py < 220) {
-                startBattle();
-            }
+            // Trigger Battle near center/sign
+            if (px > 100 && px < 160 && py > 160 && py < 220) startBattle();
         }
 
         function startBattle() {
-            gameContainer.style.display = 'none';
-            controls.style.display = 'none';
-            battleScreen.style.display = 'block';
-            dialogue.innerText = "Nikhil wants to ask you something...";
+            document.getElementById('overworld').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('battle-screen').style.display = 'block';
+            typeText(currentDialogueSet[dialogueIndex]);
         }
 
-        function handleChoice(choice) {
-            if (choice === 'yes') {
-                dialogue.innerText = "It's super effective! ❤️";
-                options.style.display = 'none';
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-                setTimeout(() => {
-                    alert("Happy Valentine's Day! See you then! ❤️");
-                }, 1000);
-            } else {
-                dialogue.innerText = "Nikhil used Flowers & Chocolate! 🍫🌹";
-                options.style.display = 'none';
-                
-                // "Enemy Attack" sequence
-                setTimeout(() => {
-                    dialogue.innerText = "You're trapped in love! Try again?";
-                    options.style.display = 'flex';
-                }, 2000);
+        function typeText(text) {
+            isTyping = true;
+            arrow.style.display = 'none';
+            textElement.innerHTML = "";
+            let i = 0;
+            const interval = setInterval(() => {
+                textElement.innerHTML += text.charAt(i);
+                i++;
+                if (i >= text.length) {
+                    clearInterval(interval);
+                    isTyping = false;
+                    if (dialogueIndex < currentDialogueSet.length - 1) {
+                        arrow.style.display = 'block';
+                    } else if (currentDialogueSet === mainDialogue) {
+                        options.style.display = 'flex';
+                    } else {
+                        // After the "No" attack text is done, return to question
+                        setTimeout(() => {
+                            dialogueIndex = 3;
+                            currentDialogueSet = mainDialogue;
+                            typeText(currentDialogueSet[dialogueIndex]);
+                        }, 1500);
+                    }
+                }
+            }, 400); // Speed of scrolling text
+        }
+
+        function advanceDialogue() {
+            if (isTyping || options.style.display === 'flex') return;
+            dialogueIndex++;
+            if (dialogueIndex < currentDialogueSet.length) {
+                typeText(currentDialogueSet[dialogueIndex]);
             }
         }
 
-        // Arrow Key Support
+        function handleChoice(val, e) {
+            e.stopPropagation(); // Stop dialogue advance on button click
+            if (val === 'yes') {
+                options.style.display = 'none';
+                textElement.innerHTML = "It's super effective! ❤️";
+                document.getElementById('opp-hp').style.width = '0%';
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            } else {
+                options.style.display = 'none';
+                currentDialogueSet = [
+                    "Nikhil used Flowers & Chocolate!",
+                    "It's super effective! You're trapped in love!"
+                ];
+                dialogueIndex = 0;
+                typeText(currentDialogueSet[dialogueIndex]);
+            }
+        }
+
         window.addEventListener('keydown', (e) => {
-            if (gameContainer.style.display !== 'none') {
+            if (document.getElementById('overworld').style.display !== 'none') {
                 if (e.key === 'ArrowUp') move('up');
                 if (e.key === 'ArrowDown') move('down');
                 if (e.key === 'ArrowLeft') move('left');
                 if (e.key === 'ArrowRight') move('right');
+            } else if (!isTyping && e.key === ' ') {
+                advanceDialogue();
             }
         });
     </script>
