@@ -6,16 +6,16 @@
     <title>Valentine Quest</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --bg-color: #222; --poke-blue: #2a75bb; --poke-yellow: #ffcb05; }
+        :root { --bg-color: #222; }
         body { margin: 0; padding: 0; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: manipulation; }
 
         /* --- OVERWORLD --- */
         #overworld { position: relative; width: 400px; height: 400px; margin-top: 20px; border: 8px solid #333; background: url('valentines background.png') no-repeat center center; background-size: cover; display: block; }
-        #player { position: absolute; width: 50px; height: 50px; background: url('valentines yannis sprite.png') no-repeat; background-size: contain; transition: all 0.15s linear; z-index: 10; }
+        #player { position: absolute; width: 50px; height: 50px; background: url('valentines yannis sprite.png') no-repeat; background-size: contain; transition: all 0.1s linear; z-index: 10; }
 
         /* --- BATTLE SCREEN --- */
         #battle-screen { display: none; position: relative; width: 400px; height: 400px; margin-top: 20px; background: #fff; border: 8px solid #000; }
-        .stats-box { position: absolute; background: #f8f8f8; border: 3px solid #444; border-radius: 0 0 10px 0; padding: 5px 10px; width: 160px; box-shadow: 3px 3px 0px #ccc; }
+        .stats-box { position: absolute; background: #f8f8f8; border: 3px solid #444; padding: 5px 10px; width: 160px; box-shadow: 3px 3px 0px #ccc; }
         .opponent-stats { top: 30px; left: 20px; border-radius: 0 10px 0 10px; }
         .player-stats { bottom: 140px; right: 20px; border-radius: 10px 0 10px 0; }
         .hp-bar-container { width: 100%; height: 8px; background: #555; border: 1px solid #000; margin-top: 5px; }
@@ -25,7 +25,10 @@
         #opponent-sprite { position: absolute; top: 20px; right: 30px; width: 130px; }
         #player-sprite { position: absolute; bottom: 130px; left: 30px; width: 130px; }
 
-        /* --- DIALOGUE & BUTTONS --- */
+        /* --- FLASH EFFECT --- */
+        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: none; z-index: 1000; }
+
+        /* --- DIALOGUE UI --- */
         #ui-container { position: absolute; bottom: 0; width: 100%; height: 120px; background: #f8f8f8; border-top: 4px solid #000; display: flex; flex-direction: column; cursor: pointer; }
         #text-box { padding: 15px; font-size: 18px; line-height: 1.4; flex-grow: 1; }
         .blink-arrow { position: absolute; bottom: 10px; right: 20px; font-size: 20px; animation: blink 0.8s infinite; display: none; }
@@ -33,7 +36,6 @@
 
         #options-container { display: none; justify-content: space-around; padding: 10px; background: #eee; border-top: 2px solid #000; }
         .battle-btn { padding: 10px 40px; border: 3px solid #000; background: white; cursor: pointer; font-weight: bold; font-size: 18px; }
-        .battle-btn:active { background: #ddd; }
 
         /* Mobile Controls */
         .dpad { display: grid; grid-template-columns: repeat(3, 55px); grid-template-rows: repeat(2, 55px); gap: 5px; margin-top: 15px; }
@@ -41,6 +43,8 @@
     </style>
 </head>
 <body>
+
+    <div id="flash"></div>
 
     <div id="overworld">
         <div id="player" style="top: 250px; left: 50px;"></div>
@@ -81,10 +85,12 @@
         const textElement = document.getElementById('text-box');
         const arrow = document.getElementById('arrow');
         const options = document.getElementById('options-container');
+        const flash = document.getElementById('flash');
 
         let px = 50, py = 250;
         let dialogueIndex = 0;
         let isTyping = false;
+        let battleStarted = false;
 
         const mainDialogue = [
             "Yannis, you are the most beautiful girl in the whole world, inside and out.",
@@ -96,6 +102,7 @@
         let currentDialogueSet = mainDialogue;
 
         function move(dir) {
+            if (battleStarted) return;
             if (dir === 'up' && py > 0) py -= 25;
             if (dir === 'down' && py < 350) py += 25;
             if (dir === 'left' && px > 0) px -= 25;
@@ -103,8 +110,22 @@
             player.style.top = py + 'px';
             player.style.left = px + 'px';
 
-            // Trigger Battle near center/sign
-            if (px > 100 && px < 160 && py > 160 && py < 220) startBattle();
+            if (px > 100 && px < 160 && py > 160 && py < 220) triggerBattleTransition();
+        }
+
+        function triggerBattleTransition() {
+            battleStarted = true;
+            flash.style.display = 'block';
+            let count = 0;
+            const flashInt = setInterval(() => {
+                flash.style.backgroundColor = count % 2 === 0 ? 'black' : 'white';
+                count++;
+                if (count > 6) {
+                    clearInterval(flashInt);
+                    flash.style.display = 'none';
+                    startBattle();
+                }
+            }, 100);
         }
 
         function startBattle() {
@@ -130,15 +151,14 @@
                     } else if (currentDialogueSet === mainDialogue) {
                         options.style.display = 'flex';
                     } else {
-                        // After the "No" attack text is done, return to question
                         setTimeout(() => {
                             dialogueIndex = 3;
                             currentDialogueSet = mainDialogue;
                             typeText(currentDialogueSet[dialogueIndex]);
-                        }, 1500);
+                        }, 1000);
                     }
                 }
-            }, 400); // Speed of scrolling text
+            }, 40); // Fast text speed (40ms)
         }
 
         function advanceDialogue() {
@@ -150,7 +170,7 @@
         }
 
         function handleChoice(val, e) {
-            e.stopPropagation(); // Stop dialogue advance on button click
+            e.stopPropagation();
             if (val === 'yes') {
                 options.style.display = 'none';
                 textElement.innerHTML = "It's super effective! ❤️";
@@ -158,22 +178,19 @@
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             } else {
                 options.style.display = 'none';
-                currentDialogueSet = [
-                    "Nikhil used Flowers & Chocolate!",
-                    "It's super effective! You're trapped in love!"
-                ];
+                currentDialogueSet = ["Nikhil used Flowers & Chocolate!", "It's super effective! You're trapped in love!"];
                 dialogueIndex = 0;
                 typeText(currentDialogueSet[dialogueIndex]);
             }
         }
 
         window.addEventListener('keydown', (e) => {
-            if (document.getElementById('overworld').style.display !== 'none') {
+            if (!battleStarted) {
                 if (e.key === 'ArrowUp') move('up');
                 if (e.key === 'ArrowDown') move('down');
                 if (e.key === 'ArrowLeft') move('left');
                 if (e.key === 'ArrowRight') move('right');
-            } else if (!isTyping && e.key === ' ') {
+            } else if (!isTyping && (e.key === 'Enter' || e.key === ' ')) {
                 advanceDialogue();
             }
         });
