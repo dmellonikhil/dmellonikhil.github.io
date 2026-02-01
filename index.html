@@ -11,7 +11,11 @@
 
         /* --- OVERWORLD --- */
         #overworld { position: relative; width: 400px; height: 400px; margin-top: 20px; border: 8px solid #333; background: url('valentines background.png') no-repeat center center; background-size: cover; display: block; }
-        #player { position: absolute; width: 50px; height: 50px; background: url('valentines yannis sprite.png') no-repeat; background-size: contain; transition: all 0.1s linear; z-index: 10; }
+        
+        /* 20% size increase (from 50px to 60px) */
+        #player { position: absolute; width: 60px; height: 60px; background: url('valentines yannis sprite.png') no-repeat; background-size: contain; transition: all 0.1s linear; z-index: 10; }
+        
+        #hint-text { position: absolute; bottom: 10px; width: 100%; text-align: center; color: white; text-shadow: 2px 2px 2px black; font-weight: bold; font-size: 14px; pointer-events: none; }
 
         /* --- BATTLE SCREEN --- */
         #battle-screen { display: none; position: relative; width: 400px; height: 400px; margin-top: 20px; background: #fff; border: 8px solid #000; }
@@ -49,6 +53,7 @@
 
     <div id="overworld">
         <div id="player" style="top: 250px; left: 50px;"></div>
+        <div id="hint-text">hint: walk towards me...</div>
     </div>
 
     <div id="battle-screen">
@@ -117,11 +122,12 @@
         function move(dir) {
             if (battleStarted) return;
             if (dir === 'up' && py > 0) py -= 25;
-            if (dir === 'down' && py < 350) py += 25;
+            if (dir === 'down' && py < 340) py += 25;
             if (dir === 'left' && px > 0) px -= 25;
-            if (dir === 'right' && px < 350) px += 25;
+            if (dir === 'right' && px < 340) px += 25;
             player.style.top = py + 'px';
             player.style.left = px + 'px';
+            // Trigger near center-left where the board usually is
             if (px > 100 && px < 160 && py > 160 && py < 220) triggerBattleTransition();
         }
 
@@ -185,22 +191,17 @@
             e.stopPropagation();
             if (val === 'yes') {
                 options.style.display = 'none';
-                textElement.innerHTML = "It's super effective! ❤️";
+                textElement.innerHTML = "It's super effective! ❤️ Happy Valentine's!";
                 oppHpBar.style.width = '0%';
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             } else {
                 options.style.display = 'none';
-                
-                // Damage Nikhil
                 nikhilHp -= 10;
                 oppHpBar.style.width = nikhilHp + '%';
-                
-                // Red Flash Visual
                 oppSprite.classList.add('dmg-flash');
                 setTimeout(() => oppSprite.classList.remove('dmg-flash'), 200);
 
                 if (nikhilHp <= 0) {
-                    // Reset Logic
                     currentDialogueSet = [
                         "Nikhil is extremely sad...",
                         "b*tch be fr rn, im finna re-up my health, u better be acting st8 gng"
@@ -208,16 +209,10 @@
                     nikhilHp = 100;
                     oppHpBar.style.width = '100%';
                 } else {
-                    // Attack Cycle
                     const attack = nikhilAttacks[attackIndex];
                     attackIndex = (attackIndex + 1) % nikhilAttacks.length;
-                    currentDialogueSet = [
-                        "Nikhil is sad...",
-                        attack,
-                        "It's super effective! You're trapped in love!"
-                    ];
+                    currentDialogueSet = ["Nikhil is sad...", attack, "It's super effective! You're trapped in love!"];
                 }
-                
                 dialogueIndex = 0;
                 typeText(currentDialogueSet[dialogueIndex]);
             }
