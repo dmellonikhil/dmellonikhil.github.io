@@ -2,138 +2,181 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Little Journey for You ❤️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Valentine Quest</title>
     <style>
-        body, html {
+        :root {
+            --tile-size: 50px;
+        }
+
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
+            background-color: #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
-            background-color: #ffb6c1; /* Light Pink */
-            font-family: 'Arial', sans-serif;
+            touch-action: manipulation;
         }
 
-        #game-container {
+        /* The Game Board */
+        #map {
             position: relative;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, #ffdde1, #ee9ca7);
+            width: 350px;
+            height: 350px;
+            background-color: #90ee90; /* Grass green */
+            background-image: radial-gradient(#7ccd7c 2px, transparent 2px);
+            background-size: 25px 25px;
+            border: 10px solid #556b2f;
+            margin-top: 20px;
+            overflow: hidden;
         }
 
-        /* The "Floor" */
-        #ground {
+        /* Sprite & Objects */
+        #player {
             position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100px;
-            background-color: #ff8fa3;
-            border-top: 5px solid #ff4d6d;
+            font-size: 35px;
+            width: var(--tile-size);
+            height: var(--tile-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s linear;
+            z-index: 10;
         }
 
-        /* The Sprite */
-        #sprite {
+        .object {
             position: absolute;
-            bottom: 100px;
-            left: 50px;
-            font-size: 50px;
-            transition: left 0.1s linear;
-            user-select: none;
+            font-size: 30px;
         }
 
-        /* The Target Image/Message */
-        #target {
+        #goal {
             position: absolute;
-            bottom: 110px;
-            right: 50px;
-            font-size: 60px;
-            filter: drop-shadow(0 0 10px white);
+            font-size: 40px;
+            left: 280px;
+            top: 280px;
+            filter: drop-shadow(0 0 5px gold);
         }
 
-        /* Instructions */
-        #instructions {
-            position: absolute;
-            top: 20%;
-            width: 100%;
-            text-align: center;
-            color: #d63384;
-            font-size: 1.5rem;
+        /* UI Elements */
+        #dialogue-box {
+            width: 330px;
+            background: white;
+            border: 4px solid black;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
             font-weight: bold;
         }
 
-        /* The Final Pop-up */
-        #modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.3);
-            text-align: center;
-            z-index: 100;
+        /* Mobile Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(2, 60px);
+            gap: 10px;
+            margin-top: 20px;
         }
 
         .btn {
-            padding: 10px 25px;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 10px;
+            width: 60px;
+            height: 60px;
+            background: #eee;
+            border: 3px solid #555;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            user-select: none;
+            active: background: #ccc;
         }
 
-        #yesBtn { background: #ff4d6d; color: white; }
+        #up { grid-column: 2; }
+        #left { grid-column: 1; grid-row: 2; }
+        #down { grid-column: 2; grid-row: 2; }
+        #right { grid-column: 3; grid-row: 2; }
+
+        /* Success Overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 182, 193, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="instructions">Use Arrow Keys or Tap/Hold the right side to move! 🏃‍♀️</div>
+    <div id="map">
+        <div class="object" style="top: 50px; left: 150px;">🌸</div>
+        <div class="object" style="top: 200px; left: 40px;">🌷</div>
+        <div class="object" style="top: 100px; left: 250px;">🌲</div>
         
-        <div id="sprite">🐱</div> <div id="target">🎁</div> <div id="ground"></div>
+        <div id="goal">🎁</div>
+        <div id="player">🚶‍♂️</div>
     </div>
 
-    <div id="modal">
-        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHp6NjBqZzh6Y2Z6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/lTGFeb3_kR2Xj6Y0Fm/giphy.gif" width="200">
-        <h1 style="color: #d63384;">You found me!</h1>
-        <p>Now that I have your attention...<br><strong>Will you be my Valentine?</strong></p>
-        <button id="yesBtn" class="btn" onclick="alert('Yay! It\'s a date! ❤️')">YES!</button>
+    <div id="dialogue-box">
+        Find the gift to see your surprise!
+    </div>
+
+    <div class="controls">
+        <div class="btn" id="up" onclick="move('up')">▲</div>
+        <div class="btn" id="left" onclick="move('left')">◀</div>
+        <div class="btn" id="down" onclick="move('down')">▼</div>
+        <div class="btn" id="right" onclick="move('right')">▶</div>
+    </div>
+
+    <div id="overlay">
+        <h1 style="color: #d63384;">Quest Complete! 💖</h1>
+        <p style="font-size: 1.2rem;">You've found the secret item!</p>
+        <h2 style="margin: 20px;">Will you be my Valentine?</h2>
+        <button onclick="alert('Yay! ❤️')" style="padding: 15px 30px; background: #ff4d6d; color: white; border: none; border-radius: 50px; font-size: 1.2rem;">YES!</button>
     </div>
 
     <script>
-        const sprite = document.getElementById('sprite');
-        const modal = document.getElementById('modal');
-        let position = 50;
-        const speed = 20;
+        const player = document.getElementById('player');
+        const overlay = document.getElementById('overlay');
+        const box = document.getElementById('dialogue-box');
+        
+        let x = 20;
+        let y = 20;
+        const step = 25;
+        const mapSize = 350;
 
-        function moveRight() {
-            const screenWidth = window.innerWidth;
-            if (position < screenWidth - 150) {
-                position += speed;
-                sprite.style.left = position + 'px';
-                
-                // Change emoji to "walking" effect
-                sprite.innerText = (sprite.innerText === '🐱') ? '🐾' : '🐱';
-            } else {
-                // Trigger the reveal
-                modal.style.display = 'block';
+        function move(dir) {
+            if (dir === 'up' && y > 0) y -= step;
+            if (dir === 'down' && y < mapSize - 50) y += step;
+            if (dir === 'left' && x > 0) x -= step;
+            if (dir === 'right' && x < mapSize - 50) x += step;
+
+            player.style.top = y + 'px';
+            player.style.left = x + 'px';
+
+            checkWin();
+        }
+
+        function checkWin() {
+            // Check if player is near the goal (bottom right)
+            if (x >= 250 && y >= 250) {
+                overlay.style.display = 'flex';
             }
         }
 
-        // Desktop Keyboard Controls
+        // Keyboard support
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                moveRight();
-            }
-        });
-
-        // Mobile Tap Controls
-        window.addEventListener('touchstart', () => {
-            moveRight();
+            if (e.key === 'ArrowUp') move('up');
+            if (e.key === 'ArrowDown') move('down');
+            if (e.key === 'ArrowLeft') move('left');
+            if (e.key === 'ArrowRight') move('right');
         });
     </script>
 </body>
