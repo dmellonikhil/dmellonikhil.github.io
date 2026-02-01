@@ -3,101 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Special Message ❤️</title>
+    <title>A Little Journey for You ❤️</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+        body, html {
             margin: 0;
-            background-color: #ffe4e1; /* Rose White */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
+            background-color: #ffb6c1; /* Light Pink */
+            font-family: 'Arial', sans-serif;
         }
 
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            max-width: 400px;
-        }
-
-        h1 { color: #d63384; }
-        p { color: #555; font-size: 1.2rem; }
-
-        .gif-placeholder {
-            width: 200px;
-            height: 200px;
-            background: #eee;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 20px;
+        #game-container {
             position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #ffdde1, #ee9ca7);
         }
 
-        button {
+        /* The "Floor" */
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #ff8fa3;
+            border-top: 5px solid #ff4d6d;
+        }
+
+        /* The Sprite */
+        #sprite {
+            position: absolute;
+            bottom: 100px;
+            left: 50px;
+            font-size: 50px;
+            transition: left 0.1s linear;
+            user-select: none;
+        }
+
+        /* The Target Image/Message */
+        #target {
+            position: absolute;
+            bottom: 110px;
+            right: 50px;
+            font-size: 60px;
+            filter: drop-shadow(0 0 10px white);
+        }
+
+        /* Instructions */
+        #instructions {
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            color: #d63384;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* The Final Pop-up */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .btn {
             padding: 10px 25px;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s;
+            margin: 10px;
         }
 
-        #yesBtn { background-color: #ff4d6d; color: white; }
-        #noBtn { background-color: #6c757d; color: white; position: absolute; left: 120px; }
-        
-        #celebration { display: none; }
+        #yesBtn { background: #ff4d6d; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="main-card" class="container">
-        <img id="display-img" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHp6NjBqZzh6Y2Z6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/c76IJLufpN61i/giphy.gif" width="200" style="border-radius: 10px;">
+    <div id="game-container">
+        <div id="instructions">Use Arrow Keys or Tap/Hold the right side to move! 🏃‍♀️</div>
         
-        <h1>Will you be my Valentine?</h1>
-        <p>I promise there will be snacks. 🍫</p>
-
-        <div class="buttons">
-            <button id="yesBtn" onclick="celebrate()">Yes!</button>
-            <button id="noBtn" onmouseover="moveButton()">No</button>
-        </div>
+        <div id="sprite">🐱</div> <div id="target">🎁</div> <div id="ground"></div>
     </div>
 
-    <div id="celebration" class="container">
+    <div id="modal">
         <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHp6NjBqZzh6Y2Z6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6ZWZ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/lTGFeb3_kR2Xj6Y0Fm/giphy.gif" width="200">
-        <h1>YAY! See you on the 14th! ❤️</h1>
+        <h1 style="color: #d63384;">You found me!</h1>
+        <p>Now that I have your attention...<br><strong>Will you be my Valentine?</strong></p>
+        <button id="yesBtn" class="btn" onclick="alert('Yay! It\'s a date! ❤️')">YES!</button>
     </div>
 
     <script>
-        function moveButton() {
-            const noBtn = document.getElementById('noBtn');
-            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
-            
-            noBtn.style.position = 'fixed';
-            noBtn.style.left = x + 'px';
-            noBtn.style.top = y + 'px';
+        const sprite = document.getElementById('sprite');
+        const modal = document.getElementById('modal');
+        let position = 50;
+        const speed = 20;
+
+        function moveRight() {
+            const screenWidth = window.innerWidth;
+            if (position < screenWidth - 150) {
+                position += speed;
+                sprite.style.left = position + 'px';
+                
+                // Change emoji to "walking" effect
+                sprite.innerText = (sprite.innerText === '🐱') ? '🐾' : '🐱';
+            } else {
+                // Trigger the reveal
+                modal.style.display = 'block';
+            }
         }
 
-        function celebrate() {
-            document.getElementById('main-card').style.display = 'none';
-            document.getElementById('celebration').style.display = 'block';
-            document.body.style.backgroundColor = '#ff4d6d';
-        }
+        // Desktop Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                moveRight();
+            }
+        });
+
+        // Mobile Tap Controls
+        window.addEventListener('touchstart', () => {
+            moveRight();
+        });
     </script>
 </body>
 </html>
