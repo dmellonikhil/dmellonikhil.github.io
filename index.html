@@ -4,179 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Valentine Quest</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root {
-            --tile-size: 50px;
-        }
-
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #222;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: flex; flex-direction: column; align-items: center;
             font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            touch-action: manipulation;
+            overflow: hidden; touch-action: manipulation;
         }
 
-        /* The Game Board */
-        #map {
+        /* --- OVERWORLD SCREEN --- */
+        #game-container {
             position: relative;
-            width: 350px;
-            height: 350px;
-            background-color: #90ee90; /* Grass green */
-            background-image: radial-gradient(#7ccd7c 2px, transparent 2px);
-            background-size: 25px 25px;
-            border: 10px solid #556b2f;
+            width: 400px; height: 400px;
             margin-top: 20px;
-            overflow: hidden;
+            border: 8px solid #333;
+            background-image: url('valentines background.png');
+            background-size: cover;
+            display: block;
         }
 
-        /* Sprite & Objects */
         #player {
             position: absolute;
-            font-size: 35px;
-            width: var(--tile-size);
-            height: var(--tile-size);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 50px; height: 50px;
+            background-image: url('valentines yannis sprite.png');
+            background-size: contain;
+            background-repeat: no-repeat;
             transition: all 0.1s linear;
             z-index: 10;
         }
 
-        .object {
-            position: absolute;
-            font-size: 30px;
+        /* --- BATTLE SCREEN --- */
+        #battle-screen {
+            display: none;
+            position: relative;
+            width: 400px; height: 400px;
+            margin-top: 20px;
+            background-color: white;
+            border: 8px solid #000;
+            overflow: hidden;
         }
 
-        #goal {
-            position: absolute;
-            font-size: 40px;
-            left: 280px;
-            top: 280px;
-            filter: drop-shadow(0 0 5px gold);
+        .opponent-side {
+            position: absolute; top: 20px; right: 30px;
+            text-align: center;
         }
 
-        /* UI Elements */
-        #dialogue-box {
-            width: 330px;
-            background: white;
-            border: 4px solid black;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-            font-weight: bold;
+        .player-side {
+            position: absolute; bottom: 120px; left: 30px;
+            text-align: center;
         }
+
+        .sprite-battle { width: 120px; }
+
+        #battle-menu {
+            position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 100px;
+            background: #f8f8f8; border-top: 4px solid #000;
+            display: flex; flex-direction: column;
+        }
+
+        #dialogue-text {
+            padding: 10px; font-size: 16px; height: 40px;
+        }
+
+        .options {
+            display: flex; justify-content: space-around;
+            padding: 5px;
+        }
+
+        .battle-btn {
+            padding: 10px 30px; border: 2px solid #000;
+            background: white; cursor: pointer; font-weight: bold;
+        }
+
+        .battle-btn:hover { background: #eee; }
 
         /* Mobile Controls */
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(3, 60px);
-            grid-template-rows: repeat(2, 60px);
-            gap: 10px;
-            margin-top: 20px;
+        .dpad {
+            display: grid; grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px); gap: 5px; margin-top: 15px;
         }
-
         .btn {
-            width: 60px;
-            height: 60px;
-            background: #eee;
-            border: 3px solid #555;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            user-select: none;
-            active: background: #ccc;
-        }
-
-        #up { grid-column: 2; }
-        #left { grid-column: 1; grid-row: 2; }
-        #down { grid-column: 2; grid-row: 2; }
-        #right { grid-column: 3; grid-row: 2; }
-
-        /* Success Overlay */
-        #overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 182, 193, 0.95);
-            z-index: 100;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            width: 50px; height: 50px; background: #eee;
+            border: 2px solid #555; display: flex;
+            align-items: center; justify-content: center; font-size: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div id="map">
-        <div class="object" style="top: 50px; left: 150px;">🌸</div>
-        <div class="object" style="top: 200px; left: 40px;">🌷</div>
-        <div class="object" style="top: 100px; left: 250px;">🌲</div>
-        
-        <div id="goal">🎁</div>
-        <div id="player">🚶‍♂️</div>
+    <div id="game-container">
+        <div id="player" style="top: 250px; left: 50px;"></div>
     </div>
 
-    <div id="dialogue-box">
-        Find the gift to see your surprise!
+    <div id="battle-screen">
+        <div class="opponent-side">
+            <div style="background: #eee; border: 2px solid #000; padding: 2px; margin-bottom: 5px;">NIKHIL HP: 100%</div>
+            <img src="valentines nikhil sprite.png" class="sprite-battle" id="opponent-img">
+        </div>
+
+        <div class="player-side">
+            <img src="valentines yannis sprite.png" class="sprite-battle">
+            <div style="background: #eee; border: 2px solid #000; padding: 2px; margin-top: 5px;">YANNIS HP: 100%</div>
+        </div>
+
+        <div id="battle-menu">
+            <div id="dialogue-text">Wild Nikhil appeared!</div>
+            <div class="options" id="battle-options">
+                <button class="battle-btn" onclick="handleChoice('yes')">YES</button>
+                <button class="battle-btn" onclick="handleChoice('no')">NO</button>
+            </div>
+        </div>
     </div>
 
-    <div class="controls">
-        <div class="btn" id="up" onclick="move('up')">▲</div>
-        <div class="btn" id="left" onclick="move('left')">◀</div>
-        <div class="btn" id="down" onclick="move('down')">▼</div>
-        <div class="btn" id="right" onclick="move('right')">▶</div>
-    </div>
-
-    <div id="overlay">
-        <h1 style="color: #d63384;">Quest Complete! 💖</h1>
-        <p style="font-size: 1.2rem;">You've found the secret item!</p>
-        <h2 style="margin: 20px;">Will you be my Valentine?</h2>
-        <button onclick="alert('Yay! ❤️')" style="padding: 15px 30px; background: #ff4d6d; color: white; border: none; border-radius: 50px; font-size: 1.2rem;">YES!</button>
+    <div class="dpad" id="controls">
+        <div style="grid-column: 2;" class="btn" onclick="move('up')">▲</div>
+        <div style="grid-column: 1; grid-row: 2;" class="btn" onclick="move('left')">◀</div>
+        <div style="grid-column: 2; grid-row: 2;" class="btn" onclick="move('down')">▼</div>
+        <div style="grid-column: 3; grid-row: 2;" class="btn" onclick="move('right')">▶</div>
     </div>
 
     <script>
         const player = document.getElementById('player');
-        const overlay = document.getElementById('overlay');
-        const box = document.getElementById('dialogue-box');
-        
-        let x = 20;
-        let y = 20;
-        const step = 25;
-        const mapSize = 350;
+        const gameContainer = document.getElementById('game-container');
+        const battleScreen = document.getElementById('battle-screen');
+        const controls = document.getElementById('controls');
+        const dialogue = document.getElementById('dialogue-text');
+        const options = document.getElementById('battle-options');
+
+        let px = 50;
+        let py = 250;
+        const step = 20;
 
         function move(dir) {
-            if (dir === 'up' && y > 0) y -= step;
-            if (dir === 'down' && y < mapSize - 50) y += step;
-            if (dir === 'left' && x > 0) x -= step;
-            if (dir === 'right' && x < mapSize - 50) x += step;
+            if (dir === 'up' && py > 0) py -= step;
+            if (dir === 'down' && py < 350) py += step;
+            if (dir === 'left' && px > 0) px -= step;
+            if (dir === 'right' && px < 350) px += step;
 
-            player.style.top = y + 'px';
-            player.style.left = x + 'px';
+            player.style.top = py + 'px';
+            player.style.left = px + 'px';
 
-            checkWin();
-        }
-
-        function checkWin() {
-            // Check if player is near the goal (bottom right)
-            if (x >= 250 && y >= 250) {
-                overlay.style.display = 'flex';
+            // Collision check: Figure is roughly at x:130, y:180 (near the sign)
+            if (px > 100 && px < 160 && py > 160 && py < 220) {
+                startBattle();
             }
         }
 
-        // Keyboard support
+        function startBattle() {
+            gameContainer.style.display = 'none';
+            controls.style.display = 'none';
+            battleScreen.style.display = 'block';
+            dialogue.innerText = "Nikhil wants to ask you something...";
+        }
+
+        function handleChoice(choice) {
+            if (choice === 'yes') {
+                dialogue.innerText = "It's super effective! ❤️";
+                options.style.display = 'none';
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                setTimeout(() => {
+                    alert("Happy Valentine's Day! See you then! ❤️");
+                }, 1000);
+            } else {
+                dialogue.innerText = "Nikhil used Flowers & Chocolate! 🍫🌹";
+                options.style.display = 'none';
+                
+                // "Enemy Attack" sequence
+                setTimeout(() => {
+                    dialogue.innerText = "You're trapped in love! Try again?";
+                    options.style.display = 'flex';
+                }, 2000);
+            }
+        }
+
+        // Arrow Key Support
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') move('up');
-            if (e.key === 'ArrowDown') move('down');
-            if (e.key === 'ArrowLeft') move('left');
-            if (e.key === 'ArrowRight') move('right');
+            if (gameContainer.style.display !== 'none') {
+                if (e.key === 'ArrowUp') move('up');
+                if (e.key === 'ArrowDown') move('down');
+                if (e.key === 'ArrowLeft') move('left');
+                if (e.key === 'ArrowRight') move('right');
+            }
         });
     </script>
 </body>
